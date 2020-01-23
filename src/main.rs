@@ -7,6 +7,8 @@ extern crate tantivy;
 extern crate base64;
 extern crate pickledb;
 extern crate rocket_contrib;
+#[macro_use]
+extern crate rust_embed;
 extern crate serde;
 extern crate uuid;
 
@@ -34,6 +36,7 @@ fn main() {
     rocket::ignite()
         .mount("/api/auth", endpoints::auth::routes())
         .mount("/api/note", endpoints::note::routes())
+        .mount("/", endpoints::static_files::routes())
         .attach(AdHoc::on_attach("Config Loader", |rocket| {
             let config = rocket.config();
 
@@ -50,8 +53,8 @@ fn main() {
                 Ok(store) => store,
                 Err(e) => {
                     println!("{:?}", e);
-                    return Err(rocket)
-                },
+                    return Err(rocket);
+                }
             };
 
             Ok(rocket

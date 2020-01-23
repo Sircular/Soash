@@ -129,11 +129,7 @@ pub mod note {
     }
 
     #[delete("/<id>")]
-    pub fn delete(
-        note_store: State<NoteStore>,
-        user: AuthenticatedUser,
-        id: DocumentId,
-    ) -> Status {
+    pub fn delete(note_store: State<NoteStore>, user: AuthenticatedUser, id: DocumentId) -> Status {
         match note_store.delete_note(user.id, id) {
             Ok(_) => Status::Ok,
             Err(_) => Status::NotFound,
@@ -145,7 +141,7 @@ pub mod note {
         note_store: State<NoteStore>,
         user: AuthenticatedUser,
         id: DocumentId,
-        count: Option<usize>
+        count: Option<usize>,
     ) -> Result<Json<Vec<Note>>, Custom<String>> {
         let count = count.unwrap_or(10);
         match note_store.search_similar(user.id, id, count) {
@@ -197,5 +193,53 @@ pub mod note {
 
     pub fn routes() -> Vec<Route> {
         routes![new, get, update, delete, search, similar]
+    }
+}
+
+pub mod static_files {
+    use rocket::{http::ContentType, response::content::Content, Route};
+    use std::path::PathBuf;
+
+    #[derive(RustEmbed)]
+    #[folder = "$CARGO_MANIFEST_DIR/notable-client/dist"]
+    struct Asset;
+
+    #[get("/", rank = 0)]
+    pub fn root() -> Result<Content<Vec<u8>>, String> {
+        static_file(None)
+    }
+
+    #[get("/<path..>", rank = 1)]
+    pub fn static_file(path: Option<PathBuf>) -> Result<Content<Vec<u8>>, String> {
+        let path = match path {
+            Some(path) => path,
+            None => PathBuf::from("/"),
+        };
+        let mut content_type = match path.extension().and_then(|s| s.to_str()) {
+            Some("html") => ContentType::HTML,
+            Some("htm") => ContentType::HTML,
+            Some("css") => ContentType::CSS,
+            Some("js") => ContentType::JavaScript,
+            _ => ContentType::Plain,
+        };
+
+        let file_data;
+        if let Some(data) = Asset::get(path.to_str().unwrap()) {
+            file_data = data;
+        } else {
+            // default to the index.html page
+            content_type = ContentType::HTML;
+            file_data = match Asset::get("index.html") {
+                Some(data) => data,
+                None => return Err(String::from("Error loading index file")),
+            }
+        }
+
+        let file_data = file_data.into_owned();
+        Ok(Content(content_type, file_data))
+    }
+
+    pub fn routes() -> Vec<Route> {
+        routes![root, static_file]
     }
 }
