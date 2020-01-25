@@ -46,7 +46,7 @@ pub mod auth {
         );
 
         let auth_cookie = Cookie::build(constants::SESSION_COOKIE_NAME, token)
-            .secure(true)
+            .path("/")
             .finish();
 
         cookies.add(auth_cookie);
@@ -209,12 +209,18 @@ pub mod static_files {
         static_file(None)
     }
 
-    #[get("/<path..>", rank = 1)]
+    #[get("/<path..>", rank = 5)]
     pub fn static_file(path: Option<PathBuf>) -> Result<Content<Vec<u8>>, String> {
         let path = match path {
             Some(path) => path,
             None => PathBuf::from("/"),
         };
+
+        // exclude api endpoints
+        if path.starts_with("api") || path.starts_with("/api") {
+            return Err(String::from("Could not find endpoint"));
+        }
+
         let mut content_type = match path.extension().and_then(|s| s.to_str()) {
             Some("html") => ContentType::HTML,
             Some("htm") => ContentType::HTML,
@@ -227,7 +233,7 @@ pub mod static_files {
         if let Some(data) = Asset::get(path.to_str().unwrap()) {
             file_data = data;
         } else {
-            // default to the index.html page
+            // default to the index.html page for client-side routing
             content_type = ContentType::HTML;
             file_data = match Asset::get("index.html") {
                 Some(data) => data,
