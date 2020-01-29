@@ -3,7 +3,7 @@ use bcrypt::BcryptError;
 use pickledb::{PickleDb, PickleDbDumpPolicy, SerializationMethod};
 use rocket::{
     fairing::{Fairing, Info, Kind},
-    http::Status,
+    http::{Status, Cookie},
     request::{FromRequest, Request, State},
     response::Response,
     Outcome,
@@ -179,9 +179,10 @@ impl Fairing for TokenRefreshFairing {
             if let Some((user, created)) = user_store.get_with_time(cookie.value()) {
                 if created.elapsed() > user_store.get_expiry() / 2 {
                     let new_token = generate_session_token();
-                    let mut new_cookie = cookie.clone();
-                    new_cookie.set_value(new_token.clone());
-                    response.set_header(new_cookie);
+                    let auth_cookie = Cookie::build(constants::SESSION_COOKIE_NAME, new_token.clone())
+                        .path("/")
+                        .finish();
+                    response.set_header(auth_cookie);
                     user_store.insert(&new_token, user.clone());
                 }
             }
