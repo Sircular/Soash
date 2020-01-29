@@ -62,8 +62,8 @@ export default {
   },
 
   watch: {
-    '$route' (_to, from) {
-      this.loadResults(from.query.query);
+    '$route' (to, _from) {
+      this.loadResults(to.query.query);
     }
   },
 }

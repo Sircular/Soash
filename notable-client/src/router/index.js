@@ -1,7 +1,10 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import Search from '../views/Search.vue'
-import Login from '../views/Login.vue'
+import Vue from 'vue';
+import VueRouter from 'vue-router';
+
+import Login from '@/views/Login.vue';
+import NewNote from '@/views/NewNote.vue';
+import Search from '@/views/Search.vue';
+import SingleNote from '@/views/SingleNote.vue';
 
 Vue.use(VueRouter)
 
@@ -15,6 +18,16 @@ export const routes = [
     name: 'login',
     path: '/login',
     component: Login,
+  },
+  {
+    name: 'new-note',
+    path: '/note/new',
+    component: NewNote,
+  },
+  {
+    name: 'single-note',
+    path: '/note/:id',
+    component: SingleNote,
   },
   {
     path: '*',
