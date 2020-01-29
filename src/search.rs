@@ -170,7 +170,7 @@ impl NoteStore {
         }
 
         let mut writer = self.writer.lock()?;
-        writer.delete_term(Term::from_field_u64(id_field, note.id as u64));
+        writer.delete_term(Term::from_field_u64(id_field, id as u64));
         writer.add_document(doc!(
                 id_field => id as u64,
                 title_field => note.title,
