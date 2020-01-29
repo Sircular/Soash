@@ -197,7 +197,7 @@ pub mod note {
 }
 
 pub mod static_files {
-    use rocket::{http::ContentType, response::content::Content, Route};
+    use rocket::{http::{ContentType, Status}, response::content::Content, Route};
     use std::path::PathBuf;
 
     #[derive(RustEmbed)]
@@ -205,12 +205,12 @@ pub mod static_files {
     struct Asset;
 
     #[get("/", rank = 0)]
-    pub fn root() -> Result<Content<Vec<u8>>, String> {
+    pub fn root() -> Result<Content<Vec<u8>>, Status> {
         static_file(None)
     }
 
     #[get("/<path..>", rank = 5)]
-    pub fn static_file(path: Option<PathBuf>) -> Result<Content<Vec<u8>>, String> {
+    pub fn static_file(path: Option<PathBuf>) -> Result<Content<Vec<u8>>, Status> {
         let path = match path {
             Some(path) => path,
             None => PathBuf::from("/"),
@@ -218,7 +218,7 @@ pub mod static_files {
 
         // exclude api endpoints
         if path.starts_with("api") || path.starts_with("/api") {
-            return Err(String::from("Could not find endpoint"));
+            return Err(Status::NotFound);
         }
 
         let mut content_type = match path.extension().and_then(|s| s.to_str()) {
@@ -237,7 +237,7 @@ pub mod static_files {
             content_type = ContentType::HTML;
             file_data = match Asset::get("index.html") {
                 Some(data) => data,
-                None => return Err(String::from("Error loading index file")),
+                None => return Err(Status::InternalServerError),
             }
         }
 
