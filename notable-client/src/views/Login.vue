@@ -52,7 +52,6 @@
 
 <script>
 
-import axios from 'axios';
 import ContentCard from '@/components/ContentCard';
 
 export default {
@@ -89,7 +88,7 @@ export default {
         params.append('username', this.username);
         params.append('password', this.password);
 
-        axios.post('/api/auth/login', params)
+        this.axios.post('/api/auth/login', params)
           .then(() => {
             this.state = 'successful';
             this.$router.push({ name: 'search' });

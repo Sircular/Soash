@@ -6,7 +6,6 @@
 
 <script>
 
-import axios from 'axios';
 import ContentCard from '@/components/ContentCard';
 
 export default {
@@ -21,7 +20,7 @@ export default {
   },
   mounted() {
     const id = this.$route.params.id;
-    axios.get(`/api/note/${id}`)
+    this.axios.get(`/api/note/${id}`)
       .then(response => {
         response = response.data;
         this.title = response.title;

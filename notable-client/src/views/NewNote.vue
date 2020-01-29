@@ -17,7 +17,6 @@
 
 <script>
 
-import axios from 'axios';
 import Card from '@/components/Card';
 import NoteEditor from '@/components/NoteEditor';
 
@@ -37,7 +36,7 @@ export default {
     submit() {
       this.state = 'saving';
 
-      axios.post('/api/note/new', this.note)
+      this.axios.post('/api/note/new', this.note)
         .then((response) => {
           const noteId = response.data;
           this.$router.push({

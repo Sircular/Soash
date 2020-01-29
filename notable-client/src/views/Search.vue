@@ -17,7 +17,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 import FullNote from "@/components/FullNote.vue";
 
 export default {
@@ -50,7 +49,7 @@ export default {
 
     loadResults(query) {
       if (query) {
-        axios.get('/api/note/search', {
+        this.axios.get('/api/note/search', {
           params: { query: query }
         })
           .then(response =>
