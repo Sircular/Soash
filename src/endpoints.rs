@@ -240,6 +240,7 @@ pub mod static_files {
             Some("htm") => ContentType::HTML,
             Some("css") => ContentType::CSS,
             Some("js") => ContentType::JavaScript,
+            Some("svg") => ContentType::SVG,
             _ => ContentType::Plain,
         };
 

@@ -1,5 +1,6 @@
 <template>
-  <card title="Register">
+  <div>
+    <card title="Register">
     <input-field
       ref="username"
       label="Username"
@@ -37,7 +38,14 @@
        >
        Register
     </a>
-  </card>
+    </card>
+    <section class="page-container">
+      <p>
+      Already have an account?
+      <router-link to="/login">Log in here.</router-link>
+      </p>
+    </section>
+  </div>
 </template>
 
 <script>
