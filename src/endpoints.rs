@@ -212,7 +212,11 @@ pub mod static_files {
 
     #[derive(RustEmbed)]
     #[folder = "$CARGO_MANIFEST_DIR/soash-client/dist"]
-    struct Asset;
+    struct AppAsset;
+
+    #[derive(RustEmbed)]
+    #[folder = "$CARGO_MANIFEST_DIR/soash-client/public"]
+    struct StaticAsset;
 
     #[get("/", rank = 0)]
     pub fn root() -> Result<Content<Vec<u8>>, Status> {
@@ -231,7 +235,7 @@ pub mod static_files {
             return Err(Status::NotFound);
         }
 
-        let mut content_type = match path.extension().and_then(|s| s.to_str()) {
+        let content_type = match path.extension().and_then(|s| s.to_str()) {
             Some("html") => ContentType::HTML,
             Some("htm") => ContentType::HTML,
             Some("css") => ContentType::CSS,
@@ -239,20 +243,20 @@ pub mod static_files {
             _ => ContentType::Plain,
         };
 
-        let file_data;
-        if let Some(data) = Asset::get(path.to_str().unwrap()) {
-            file_data = data;
-        } else {
-            // default to the index.html page for client-side routing
-            content_type = ContentType::HTML;
-            file_data = match Asset::get("index.html") {
-                Some(data) => data,
-                None => return Err(Status::InternalServerError),
-            }
+        if let Some(data) = AppAsset::get(path.to_str().unwrap()) {
+            return Ok(Content(content_type, data.into_owned()));
         }
 
-        let file_data = file_data.into_owned();
-        Ok(Content(content_type, file_data))
+        if let Some(data) = StaticAsset::get(path.to_str().unwrap()) {
+            return Ok(Content(content_type, data.into_owned()));
+        }
+
+        // default to the index.html page for client-side routing
+        match AppAsset::get("index.html") {
+            Some(data) => Ok(Content(ContentType::HTML, data.into_owned())),
+            None => Err(Status::InternalServerError)
+        }
+
     }
 
     pub fn routes() -> Vec<Route> {
