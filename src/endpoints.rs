@@ -211,7 +211,7 @@ pub mod static_files {
     use std::path::PathBuf;
 
     #[derive(RustEmbed)]
-    #[folder = "$CARGO_MANIFEST_DIR/notable-client/dist"]
+    #[folder = "$CARGO_MANIFEST_DIR/soash-client/dist"]
     struct Asset;
 
     #[get("/", rank = 0)]

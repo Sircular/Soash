@@ -1,5 +1,5 @@
 [package]
-name = "notable"
+name = "soash"
 version = "0.1.0"
 authors = ["Walter Mays <walt@waltermays.com>"]
 edition = "2018"

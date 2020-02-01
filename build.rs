@@ -13,7 +13,7 @@ fn main() {
         let parent = Path::new(
             &env::var("CARGO_MANIFEST_DIR").expect("Could not determine manifest directory."),
         )
-        .join("notable-client");
+        .join("soash-client");
         Command::new("npm")
             .args(vec!["run", "build"])
             .current_dir(&parent)
