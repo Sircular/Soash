@@ -30,10 +30,18 @@ pub struct NoteStore {
 impl NoteStore {
     pub fn new(index_dir: String) -> tantivy::Result<Self> {
         let mut builder = Schema::builder();
+
+        let text_options = TextOptions::default()
+            .set_indexing_options(
+                TextFieldIndexing::default()
+                .set_tokenizer("en_stem")
+            )
+            .set_stored();
+
         builder.add_u64_field("id", STORED | INDEXED | FAST);
         builder.add_u64_field("user_id", STORED | INDEXED | FAST);
-        builder.add_text_field("title", TEXT | STORED);
-        builder.add_text_field("body", TEXT | STORED);
+        builder.add_text_field("title", text_options.clone());
+        builder.add_text_field("body", text_options.clone());
 
         fs::create_dir_all(&index_dir)?;
 
