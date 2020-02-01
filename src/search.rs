@@ -110,6 +110,7 @@ impl NoteStore {
 
         Ok(fruit
             .iter()
+            .filter(|(score, _)| *score > 1.)
             .map(|(_, addr)| self.load_note(searcher.doc(*addr).unwrap()))
             .collect())
     }
@@ -149,7 +150,9 @@ impl NoteStore {
 
         Ok(fruit
             .iter()
+            .filter(|(score, _)| *score > 1.)
             .map(|(_, addr)| self.load_note(searcher.doc(*addr).unwrap()))
+            .filter(|note| note.id != note_id)
             .collect())
     }
 

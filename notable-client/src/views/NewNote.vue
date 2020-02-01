@@ -36,7 +36,13 @@ export default {
     submit() {
       this.state = 'saving';
 
-      this.axios.post('/api/note/new', this.note)
+      let note = {
+        title: this.note.title,
+        body: this.note.body,
+      };
+      note.body = this.showdown.makeMarkdown(note.body);
+
+      this.axios.post('/api/note/new', note)
         .then((response) => {
           const noteId = response.data;
           this.$router.push({

@@ -62,18 +62,28 @@ pub mod auth {
         }
     }
 
+    #[get("/verify")]
+    pub fn verify(_user: AuthenticatedUser) -> Status {
+        Status::Ok
+    }
+
     #[get("/logout")]
     pub fn logout(
         auth_cache: State<TtlCache<AuthenticatedUser>>,
-        mut cookies: Cookies,
         user: AuthenticatedUser,
+        mut cookies: Cookies,
     ) {
         auth_cache.remove(&user.name);
-        cookies.remove(Cookie::named(constants::SESSION_COOKIE_NAME));
+
+        let auth_cookie = Cookie::build(constants::SESSION_COOKIE_NAME, "")
+            .path("/")
+            .finish();
+
+        cookies.remove(auth_cookie);
     }
 
     pub fn routes() -> Vec<Route> {
-        routes![login, register, logout]
+        routes![login, register, verify, logout]
     }
 }
 

@@ -1,9 +1,7 @@
 <template>
   <div id="app">
     <Navbar :pages="pages"/>
-    <div class="page-container">
-      <router-view/>
-    </div>
+    <router-view/>
   </div>
 </template>
 
@@ -19,20 +17,22 @@ export default {
     return {
       pages: [
         {
-          title: "My Notes",
-          path: "/search",
+          title: 'My Notes',
+          path: '/search',
+        },
+        {
+          title: 'New Note',
+          path: '/note/new',
         }
       ]
     }
   },
+  mounted() {
+    this.directAxios.get('/api/auth/verify')
+      .then(() => {
+        this.$root.$data.loggedIn = true;
+      })
+      .catch(() => this.$root.$data.loggedIn = false);
+  },
 }
 </script>
-
-<style lang="scss">
-@import "@/assets/styles.scss";
-
-.page-container {
-  padding: $gap;
-}
-
-</style>

@@ -1,67 +1,49 @@
 <template>
-  <ContentCard title="Log In">
-  <div class="field">
-    <label class="label">Username</label>
-    <div class="control">
-      <input class="input"
-             :class="{ 'is-danger': !isFieldValid('username') }"
-             ref="username"
-             v-model="username"
-             @keydown.enter="focusRef('password')"
-             @focus="activeField = 'username'"
-             @blur="activeField = ''"
-             :disabled="state === 'loading'"
-             />
-      <p class="help is-danger" v-if="!isFieldValid('username')">
-      A username is required.
-      </p>
-    </div>
-  </div>
+  <card title="Log In">
+      <input-field
+        ref="username"
+        label="Username"
+        v-model="username"
+        @enter="focusRef('password')"
+        :valid="state !== 'invalid' || !!username"
+        :disabled="state === 'loading'"
+        helptext="A username is required."
+        />
+      <input-field
+        type="password"
+        ref="password"
+        label="Password"
+        v-model="password"
+        @enter="submit()"
+        :valid="state !== 'invalid' || !!password"
+        :disabled="state === 'loading'"
+        helptext="A password is required."
+        />
 
-  <div class="field">
-    <label class="label">Password</label>
-    <div class="control">
-      <input type="password"
-             class="input"
-             :class="{ 'is-danger': !isFieldValid('password') }"
-             ref="password"
-             v-model="password"
-             @keydown.enter="submit()"
-             @focus="activeField = 'password'"
-             @blur="activeField = ''"
-             :disabled="state === 'loading'"
-             />
-      <p class="help is-danger" v-if="!isFieldValid('password')">
-      A password is required.
+      <p v-if="state === 'failed'" class="has-text-danger">
+      Invalid username or password
       </p>
-    </div>
-  </div>
 
-  <div class="field">
-    <div class="control">
       <a @click="submit"
          class="button is-primary"
-         :class="{ 'is-loading': state === 'loading' }">Log In</a>
-    </div>
-  </div>
-
-  <p v-if="state === 'failed'" class="has-text-danger">Invalid username or password</p>
-
-  </ContentCard>
+         :class="{ 'is-loading': state === 'loading' }">
+        Log In
+      </a>
+  </card>
 </template>
 
 <script>
 
-import ContentCard from '@/components/ContentCard';
+import Card from '@/components/Card';
+import InputField from '@/components/InputField';
 
 export default {
-  name: 'Login',
-  components: { ContentCard },
+  name: 'login',
+  components: { Card, InputField },
   data() {
     return {
       username: '',
       password: '',
-      activeField: '',
       state: 'unsubmitted'
     }
   },
@@ -71,7 +53,7 @@ export default {
     },
 
     isFieldValid(name) {
-      if (this.state !== 'missing') { return true; }
+      if (this.state !== 'invalid') { return true; }
       const elem = this.$refs[name];
       if (!elem) { return false; }
       return !!(elem.value);
@@ -80,7 +62,7 @@ export default {
     submit() {
       this.state = 'validating';
       if (!(this.$refs.username.value && this.$refs.password.value)) {
-        this.state = 'missing';
+        this.state = 'invalid';
       } else {
         this.state = 'loading';
 
@@ -88,14 +70,15 @@ export default {
         params.append('username', this.username);
         params.append('password', this.password);
 
-        this.axios.post('/api/auth/login', params)
+        this.directAxios.post('/api/auth/login', params)
           .then(() => {
             this.state = 'successful';
+            this.$root.$data.loggedIn = true;
             this.$router.push({ name: 'search' });
           })
           .catch(() => {
             this.state = 'failed';
-            this.password = ''
+            this.password = '';
           });
       }
     }

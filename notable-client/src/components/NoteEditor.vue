@@ -13,6 +13,7 @@
     <div class="editor-container">
       <vue-editor
         ref="editor"
+        :editorToolbar="toolbar"
         :disabled="disabled"
         :value="value.body"
         @input="updateData()" />
@@ -35,6 +36,15 @@ export default {
       type: Object,
       required: true
     },
+  },
+  data() {
+    return {
+      toolbar: [
+        ["bold", "italic", "underline", "strike"],
+        [{ header: 1 }, { header: 2 }],
+        [{ list: "ordered" }, { list: "bullet" }],
+      ],
+    };
   },
   components: { VueEditor },
   methods: {

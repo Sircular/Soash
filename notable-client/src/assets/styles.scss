@@ -1,2 +1,10 @@
 @import "colors.scss";
 @import "~bulma/bulma.sass";
+
+.page-container {
+  margin-left: auto;
+  margin-right: auto;
+  padding: $gap / 2;
+  padding-top: $gap;
+  max-width: 960px;
+}
