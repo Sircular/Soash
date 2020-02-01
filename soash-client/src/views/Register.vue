@@ -80,7 +80,7 @@ export default {
     submit() {
       this.state = 'validating';
 
-      if (!(this.$refs.username.value &&
+      if (!(this.$refs.username.value && this.$refs.password.value &&
         this.$refs.password.value === this.$refs.confirmPassword.value)) {
         this.state = 'invalid';
       } else {

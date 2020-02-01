@@ -29,7 +29,10 @@ pub mod auth {
         auth_cache: State<TtlCache<AuthenticatedUser>>,
         form: Form<LoginForm>,
     ) -> Status {
-        let result = auth_store.authenticate_user(&form.username, &form.password);
+        let username = form.username.trim();
+        let password = form.password.trim();
+
+        let result = auth_store.authenticate_user(username, password);
         let user = match result {
             Ok(user) => user,
             Err(_) => return Status::Unauthorized,
@@ -56,7 +59,13 @@ pub mod auth {
 
     #[post("/register", data = "<form>")]
     pub fn register(auth_store: State<AuthStore>, form: Form<RegisterForm>) -> Status {
-        match auth_store.register_user(&form.username, &form.password) {
+        let username = form.username.trim();
+        let password = form.password.trim();
+
+        if username == "" || password == "" {
+            return Status::Unauthorized;
+        }
+        match auth_store.register_user(username, password) {
             Ok(_) => Status::Ok,
             Err(_) => Status::Unauthorized,
         }
