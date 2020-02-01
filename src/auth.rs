@@ -85,15 +85,19 @@ impl AuthStore {
     }
 
     pub fn register_user(&self, name: &str, password: &str) -> Result<(), AuthenticationError> {
+        let norm_name = name.to_lowercase();
+
         let mut db = self.db.write()?;
         let existing_user: Option<User> = db.get(&name);
+
         if let Some(_) = existing_user {
             return Err(AuthenticationError::UsernameTaken);
         }
+
         let id = self.id_counter.inc() as u64;
         let password = bcrypt::hash(&password, constants::BCRYPT_ITERATIONS)?;
         db.set(
-            &name,
+            &norm_name,
             &User {
                 id,
                 name: String::from(name),
@@ -109,11 +113,14 @@ impl AuthStore {
         password: &str,
     ) -> Result<User, AuthenticationError> {
         use AuthenticationError::*;
+        let norm_name = name.to_lowercase();
+
         let db = self.db.read()?;
-        let stored_user = match db.get::<User>(name) {
+        let stored_user: User = match db.get(&norm_name) {
             None => return Err(UserNotFound),
             Some(user) => user,
         };
+
         if bcrypt::verify(password, &stored_user.password)? {
             Ok(stored_user)
         } else {
