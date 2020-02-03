@@ -19,5 +19,22 @@
 <script>
 export default {
   name: 'landing',
+  computed: {
+    loggedIn() {
+      return !!this.$root.$data.loggedIn;
+    }
+  },
+  mounted() {
+    if (this.loggedIn) {
+      this.$router.push({ name: 'search' });
+    }
+  },
+  watch: {
+    loggedIn(to, _from) {
+      if (to) {
+        this.$router.push({ name: 'search' });
+      }
+    }
+  }
 }
 </script>

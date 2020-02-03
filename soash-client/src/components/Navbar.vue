@@ -1,10 +1,10 @@
 <template>
-  <div class="navbar has-shadow has-background-white-ter">
+  <div class="navbar floating has-shadow has-background-white-ter">
     <div class="container">
 
       <div class="navbar-brand">
         <div class="navbar-item">
-          <router-link to="/">
+          <router-link :to="homePage" @click.native="expanded = false">
             <img src="/img/logo-dark.svg" alt="soash logo"/>
           </router-link>
         </div>
@@ -28,6 +28,7 @@
             exact-active-class="is-active"
             v-for="page in leftPages"
             :key="page.path"
+            @click.native="expanded = false"
             :to="page.path">
             {{ page.title }}
           </router-link>
@@ -36,6 +37,7 @@
           <div class="navbar-item" v-if="loggedIn === false">
             <router-link
               to="/register"
+              @click.native="expanded = false"
               class="button is-primary" >
               Sign Up
             </router-link>
@@ -43,12 +45,14 @@
           <div class="navbar-item" v-if="loggedIn === false">
             <router-link
               to="/login"
+              @click.native="expanded = false"
               class="button">
               Log In
             </router-link>
           </div>
           <div class="navbar-item" v-if="loggedIn === true">
-            <a @click="logOut" class="button">
+            <a @click="logOut(); expanded = false;"
+              class="button">
               Log Out
             </a>
           </div>
@@ -76,6 +80,13 @@ export default {
         return [];
       }
     },
+    homePage() {
+      if (this.loggedIn === true) {
+        return '/search';
+      } else {
+        return '/';
+      }
+    },
     loggedIn() {
       return !!this.$root.$data.loggedIn;
     }
@@ -98,4 +109,11 @@ export default {
 .navbar-item.is-active {
   @extend .has-background-white-bis;
 }
+
+.floating {
+  position: fixed !important;
+  top: 0;
+  width: 100%;
+}
+
 </style>
