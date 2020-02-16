@@ -3,7 +3,7 @@
     <div class="card-content" @click="$emit('click')">
       <div class="hidden-shadow"></div>
       <strong>{{ title }}</strong>
-      <span v-html="showdown.makeHtml(body)"></span>
+      <span v-html="body"></span>
     </div>
   </div>
 </template>

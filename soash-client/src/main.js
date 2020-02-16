@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import VueCookie from 'vue-cookie';
-import showdown from 'showdown';
 import axios from 'axios';
 
 import App from './App.vue';
@@ -33,18 +32,6 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-// Create a global instance of the Showdown converter
-const converter = new showdown.Converter();
-Vue.mixin({
-  data: function() {
-    return {
-      get showdown() {
-        return converter;
-      }
-    }
-  }
-})
 
 Vue.config.productionTip = false;
 

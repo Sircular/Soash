@@ -109,7 +109,7 @@ export default {
         .then(response => {
           response = response.data;
           this.title = response.title;
-          this.body = this.showdown.makeHtml(response.body);
+          this.body = response.body;
           this.state = 'viewing';
         })
         .catch();

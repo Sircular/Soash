@@ -46,7 +46,7 @@ export default {
       .then(response => {
         response = response.data;
         this.note.title = response.title;
-        this.note.body = this.showdown.makeHtml(response.body);
+        this.note.body = response.body;
         this.state = 'editing';
       })
       .catch();
