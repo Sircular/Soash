@@ -1,4 +1,5 @@
 use atomic_counter::{AtomicCounter, RelaxedCounter};
+use scraper::Html;
 use serde::{Deserialize, Serialize};
 use std::{fs, sync::Mutex};
 use tantivy::{
@@ -6,10 +7,77 @@ use tantivy::{
     directory::MmapDirectory,
     query::{AllQuery, BooleanQuery, Occur, Query, RangeQuery, TermQuery},
     schema::*,
+    tokenizer::{Language, LowerCaser, RemoveLongFilter, Stemmer, Token, TokenStream, Tokenizer},
     DocAddress, Error, Index, IndexReader, IndexWriter, Term,
 };
 
 use crate::constants;
+
+#[derive(Clone)]
+struct HtmlTokenizer;
+
+// Implementation largely borrowed from SimpleTokenizer; we can't just call out to the
+// SimpleTokenizer due to Rust's borrowing rules.
+impl<'a> Tokenizer<'a> for HtmlTokenizer {
+    type TokenStreamImpl = HtmlTokenStream;
+
+    fn token_stream(&self, raw_text: &'a str) -> Self::TokenStreamImpl {
+        HtmlTokenStream::new(raw_text)
+    }
+}
+
+struct HtmlTokenStream {
+    text_tokens: Vec<String>,
+    index: usize,
+    token: Token,
+}
+
+impl HtmlTokenStream {
+    fn new(raw_text: &str) -> HtmlTokenStream {
+        let fragment = Html::parse_fragment(raw_text);
+        let text_tokens = fragment
+            .root_element()
+            .text()
+            .flat_map(|s| s.split(|c: char| !c.is_alphanumeric()))
+            .filter(|s| s.len() > 0)
+            .map(|s| String::from(s))
+            .collect();
+
+        HtmlTokenStream {
+            text_tokens,
+            index: 0,
+            token: Token::default(),
+        }
+    }
+}
+
+impl TokenStream for HtmlTokenStream {
+    fn advance(&mut self) -> bool {
+        self.token.text.clear();
+        self.token.position = self.token.position.wrapping_add(1);
+
+        if self.index >= self.text_tokens.len() {
+            return false;
+        }
+
+        // set these to zero, since HTML parsing changes the number and offsets of bytes
+        // (converting HTML entities and the like).
+        self.token.offset_from = 0;
+        self.token.offset_to = 0;
+        self.token.text.push_str(&self.text_tokens[self.index]);
+
+        self.index += 1;
+        true
+    }
+
+    fn token(&self) -> &Token {
+        &self.token
+    }
+
+    fn token_mut(&mut self) -> &mut Token {
+        &mut self.token
+    }
+}
 
 pub type DocumentId = usize;
 
@@ -32,10 +100,7 @@ impl NoteStore {
         let mut builder = Schema::builder();
 
         let text_options = TextOptions::default()
-            .set_indexing_options(
-                TextFieldIndexing::default()
-                .set_tokenizer("en_stem")
-            )
+            .set_indexing_options(TextFieldIndexing::default().set_tokenizer("en_html"))
             .set_stored();
 
         builder.add_u64_field("id", STORED | INDEXED | FAST);
@@ -47,6 +112,13 @@ impl NoteStore {
 
         let index_dir = MmapDirectory::open(&index_dir)?;
         let index = Index::open_or_create(index_dir, builder.build())?;
+
+        let en_html = HtmlTokenizer
+            .filter(RemoveLongFilter::limit(40))
+            .filter(LowerCaser)
+            .filter(Stemmer::new(Language::English));
+        index.tokenizers().register("en_html", en_html);
+
         let reader = index.reader()?;
         let writer = index.writer(constants::INDEXER_HEAP_SIZE)?;
 

@@ -61,8 +61,6 @@ export default {
         body: this.note.body,
       };
 
-      note.body = this.showdown.makeMarkdown(note.body);
-
       this.axios.post(`/api/note/${id}/update`, note)
         .then(() => {
           this.$router.push({

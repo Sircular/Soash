@@ -40,7 +40,6 @@ export default {
         title: this.note.title,
         body: this.note.body,
       };
-      note.body = this.showdown.makeMarkdown(note.body);
 
       this.axios.post('/api/note/new', note)
         .then((response) => {
