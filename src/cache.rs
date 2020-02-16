@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    mem,
     sync::{
         atomic::{AtomicU8, Ordering},
         RwLock,
@@ -40,16 +41,16 @@ where T: Clone
     }
 
     pub fn insert(&self, key: &str, value: T) {
-        {
-            let mut users = self.users.write().unwrap();
-            users.insert(
-                String::from(key),
-                TtlEntry {
-                    value,
-                    created: Instant::now(),
-                },
-            );
-        }
+        let mut users = self.users.write().unwrap();
+        users.insert(
+            String::from(key),
+            TtlEntry {
+                value,
+                created: Instant::now(),
+            },
+        );
+        mem::drop(users);  // Necessary for the RwLock
+
         self.prune_old_entries(false);
     }
 
@@ -59,16 +60,14 @@ where T: Clone
     }
 
     pub fn get_with_time(&self, key: &str) -> Option<(T, Instant)> {
-        let computed;
-        {
-            let users = self.users.read().unwrap();
-            let entry = users.get(key)?;
-            computed = if entry.created.elapsed() > self.expiry {
-                None
-            } else {
-                Some((entry.value.clone(), entry.created))
-            };
-        }
+        let users = self.users.read().unwrap();
+        let entry = users.get(key)?;
+        let computed = if entry.created.elapsed() > self.expiry {
+            None
+        } else {
+            Some((entry.value.clone(), entry.created))
+        };
+        mem::drop(users);  // Necessary for the RwLock
 
         if let None = computed {
             self.prune_old_entries(true);
